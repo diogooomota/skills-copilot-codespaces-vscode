@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Peças</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<?php
+session_start();
+?>
+
+<header>
+    <h1>Auto Peças</h1>
+    <nav>
+        <a href="index.php">Home</a>
+        <a href="sobre.html">Sobre Nós</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="carrinho.html">Carrinho</a>
+
+        <?php
+        if (isset($_SESSION['user'])) {
+            echo "<a href='logout.php'>Sair (" . $_SESSION['user'] . ")</a>";
+        } else {
+        echo "<a href='login.php'>Login</a>";
+        }
+        ?>
+    </nav>
+</header>
+
+
+<main>
+    <section class="search">
+        <h2>Encontre Peças para o seu Carro</h2>
+        <form action="resultados.php" method="GET">
+            <label for="marca">Marca:</label>
+            <select id="marca" name="marca" onchange="carregarModelos()">
+                <option value="">Selecione uma marca</option>
+                <?php
+                // Conexão com o banco de dados
+                $conexao = new mysqli("localhost", "utilizador", "senha", "banco_de_dados");
+
+                // Verifica erro na conexão
+                if ($conexao->connect_error) {
+                die("Erro na conexão: " . $conexao->connect_error);
+                }
+
+                // Busca marcas no banco de dados
+                $query = $conexao->query("SELECT * FROM Marca");
+
+                // Preenche o select com as marcas do banco
+                while ($marca = $query->fetch_assoc()) {
+                echo "<option value='" . $marca["idMarca"] . "'>" . $marca['nome'] . "</option>";
+                }
+
+                // Fecha a conexão
+                $conexao->close();
+                ?>
+            </select>
+
+            <label for="modelo">Modelo:</label>
+            <select id="modelo" name="modelo">
+                <option value="">Selecione um modelo</option>
+            </select>
+
+            <button type="submit">Pesquisar</button>
+        </form>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2025 Auto Peças. Todos os direitos reservados.</p>
+</footer>
+
+<!-- Script JavaScript para carregar modelos -->
+<script>
+    function carregarModelos() {
+        var idMarca = document.getElementById("marca").value;
+        var modeloDropdown = document.getElementById("modelo");
+
+        // Se nenhuma marca for selecionada, limpar o select de modelos
+        if (idMarca === "") {
+            modeloDropdown.innerHTML = "<option value=''>Selecione um modelo</option>";
+            return;
+        }
+
+        // Carregar modelos via AJAX
+        fetch("buscar_modelos.php?idMarca=" + idMarca)
+            .then(response => response.text())
+            .then(data => {
+                modeloDropdown.innerHTML = data;
+            })
+            .catch(error => console.error("Erro ao carregar modelos:", error));
+    }
+</script>
+</body>
+</html>
